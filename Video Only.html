@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.js"></script>
+    <meta charset="utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        //Make Sound Object
+        var CMajorSound = new Howl({
+            src: ['Sounds/CMajor.mp3']
+        });
+
+        function CMajor(){
+            //Play Sound Object
+            CMajorSound.play()
+        }
+
+        var DMinorSound = new Howl({
+          src: ['Sounds/DMinor.mp3']
+        });
+
+        function DMinor(){
+            //Play Sound Object
+            DMinorSound.play()
+        }
+        
+        var EMinorSound = new Howl({
+            src: ['Sounds/EMinor.mp3']
+        });
+
+        function EMinor(){
+            //Play Sound Object
+            EMinorSound.play()
+        }
+        
+        var FMajorSound = new Howl({
+            src: ['Sounds/FMajor.mp3']
+        });
+
+        function FMajor(){
+            //Play Sound Object
+            FMajorSound.play()
+        }
+
+        var GMajorSound = new Howl({
+            src: ['Sounds/GMajor.mp3']
+        });
+
+        function GMajor(){
+            //Play Sound Object
+            GMajorSound.play()
+        }
+
+        var AMinorSound = new Howl({
+          src: ['Sounds/AMinor.mp3']
+        });
+
+        function AMinor(){
+            //Play Sound Object
+            AMinorSound.play()
+        }
+    </script>
+    <script type="module">
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const canvasElement = document.getElementsByClassName('output_canvas')[0];
+        const canvasCtx = canvasElement.getContext('2d');
+        
+        function onResults(results) {
+          if(results.multiHandedness.length == 0) {
+            console.log("hi");
+          } else {
+            let thumb = results.multiHandWorldLandmarks[0][4]["y"];
+            let pointing = results.multiHandWorldLandmarks[0][8]["y"];
+            let pinky = results.multiHandWorldLandmarks[0][20]["y"];
+            if (results.multiHandedness[0]["label"] == "Right") {
+              if (thumb < pointing && thumb < pinky) {
+                //THUMB NAKATAAS
+                CMajor();
+              }
+              if (pointing < thumb && pointing < pinky){
+                //POINTING NAKATAAS
+                DMinor();
+              }
+              if (pinky < thumb && pinky < pointing){
+                EMinor();
+              }
+            } else if (results.multiHandedness[0]["label"] == "Left") {
+              if (thumb < pointing && thumb < pinky) {
+                //THUMB NAKATAAS
+                FMajor();
+              }
+              if (pointing < thumb && pointing < pinky){
+                //POINTING NAKATAAS
+                GMajor();
+              }
+              if (pinky < thumb && pinky < pointing){
+                AMinor();
+              }
+            }
+          }
+          
+          canvasCtx.save();
+          canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+          canvasCtx.drawImage(
+              results.image, 0, 0, canvasElement.width, canvasElement.height);
+          if (results.multiHandLandmarks) {
+            for (const landmarks of results.multiHandLandmarks) {
+              drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
+                             {color: '#00FF00', lineWidth: 5});
+              drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
+            }
+          }
+          canvasCtx.restore();
+        }
+        
+        const hands = new Hands({locateFile: (file) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+        hands.setOptions({
+          maxNumHands: 2,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+        
+        const camera = new Camera(videoElement, {
+          onFrame: async () => {
+            await hands.send({image: videoElement});
+          },
+          width: 1280,
+          height: 720
+        });
+        camera.start();
+        </script>
+</head>
+<body>
+    <div class="container" style=text-align:center>
+        <video class="input_video" hidden></video>
+        <canvas class="output_canvas" width="854px" height="480px"></canvas>
+    </div>
+    <button onclick="CMajor()">HI</button>
+</body>
+</html>
